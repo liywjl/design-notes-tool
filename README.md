@@ -1,10 +1,16 @@
 # design-notes
 
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support%20this%20project-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/willlacf)
+
 Annotate a running web app by clicking on things, then hand the whole batch of feedback to an AI coding agent in one go.
 
 Built for the "this padding is wrong, that font is off, this should be 12px" loop between design review and implementation. Instead of describing each issue in chat one at a time, you Alt+click the element, type what's wrong, and export everything as one JSON file that carries the technical context an agent needs to find and fix each issue — computed styles, the React component chain, and (on dev builds) the exact source file and line.
 
-No build step, no dependencies, no network calls. One vanilla JS file. Notes stay in your browser's localStorage until you export or clear them.
+No build step, no dependencies, no network calls. One vanilla JS file. Notes stay in your browser's localStorage until you export or clear them. If it saves you review cycles, you can [buy me a coffee](https://buymeacoffee.com/willlacf).
+
+![demo](docs/demo.gif)
+
+**[Try it live →](https://liywjl.github.io/design-notes-tool/demo/)** — the demo page (a deliberately ordinary to-do app) has the tool pre-loaded: hold Alt and start clicking.
 
 ## Demo
 <img width="960" height="600" alt="demo" src="https://github.com/user-attachments/assets/97fa1819-e5bf-4acf-92e1-1e32b870ce6a" />
@@ -18,7 +24,7 @@ No build step, no dependencies, no network calls. One vanilla JS file. Notes sta
 
 Pick one:
 
-**DevTools snippet (recommended)** — DevTools → Sources → Snippets → New snippet → paste `design-notes.js` → run with Cmd/Ctrl+Enter. Re-run after a full page reload.
+**DevTools snippet (recommended)** — open DevTools → Sources → Snippets → New snippet → paste `design-notes.js` → run with Cmd/Ctrl+Enter. Re-run after a full page reload. (New to snippets? See the [Chrome DevTools snippets guide](https://developer.chrome.com/docs/devtools/javascript/snippets).)
 
 **Console** — paste the contents of `design-notes.js` into the DevTools console.
 
@@ -29,6 +35,18 @@ javascript:fetch('https://YOUR-HOST/design-notes.js').then(r=>r.text()).then(eva
 ```
 
 ## Use
+
+**1. Alt+hover** — anything under the cursor gets highlighted:
+
+![hover highlight](docs/1-hover-highlight.png)
+
+**2. Alt+click** — a note box opens on the element; write as much as you need (Cmd/Ctrl+Enter saves):
+
+![note modal](docs/2-note-modal.png)
+
+**3. The badge** (bottom-left) opens the manager — edit or delete individual notes, copy or download the batch:
+
+![manage panel](docs/3-manage-panel.png)
 
 | Action | How |
 |---|---|
@@ -43,17 +61,17 @@ javascript:fetch('https://YOUR-HOST/design-notes.js').then(r=>r.text()).then(eva
 
 ```json
 {
-  "note": "the radio should be top aligned, not centered",
-  "page": "/registration",
+  "note": "completed items are too faint — keep the strikethrough but use a darker grey",
+  "page": "/",
   "viewport": "1440x900",
   "element": {
-    "text": "Business",
-    "tag": "button",
-    "testId": "account-type-option",
-    "componentChain": ["button", "StyledRadio", "AccountTypeStep"],
-    "source": "src/components/AccountTypeStep/index.tsx:92",
-    "box": { "x": 57, "y": 376, "w": 24, "h": 24 },
-    "styles": { "fontSize": "16px", "padding": "0px", "border": "1px solid rgb(200,200,199)" }
+    "text": "Book dentist appointment",
+    "tag": "label",
+    "testId": "todo-item",
+    "componentChain": ["label", "TodoItem", "TodoList"],
+    "source": "src/components/TodoItem.tsx:18",
+    "box": { "x": 214, "y": 313, "w": 342, "h": 21 },
+    "styles": { "fontSize": "15px", "color": "rgb(154, 154, 165)", "textDecoration": "line-through" }
   }
 }
 ```
@@ -64,12 +82,17 @@ Nothing React-specific is required — on non-React apps you simply get the DOM/
 
 ## The batch workflow
 
-1. Run your app locally, load the tool.
+1. Run your app locally, load the tool. (Or just play with the [live demo](https://liywjl.github.io/design-notes-tool/demo/) — no setup at all.)
 2. Walk the UI against your designs; Alt+click everything that looks off.
-3. Export `design-notes.json`.
-4. Give the file to your AI coding agent: *"process this design feedback batch"*.
+3. Badge → **Copy** (or **Download** for a `design-notes.json` file).
+4. Paste it to your LLM / coding agent with a prompt like:
 
-Each note is self-locating, so the agent can map "font style doesn't seem correct" + `fontFamily: "Times"` + `testId: step-indicator` straight to the offending SVG `<text>` without any back-and-forth.
+   > Here is a batch of design feedback captured on the running app. Each note includes the element's
+   > computed styles, component chain, and source location. Work through every note and fix them.
+
+   One paste, whole batch — no per-issue back-and-forth.
+
+Each note is self-locating, so the agent can map "this font looks wrong" + `fontFamily: "Times"` + a test id straight to the offending element without any back-and-forth.
 
 ## Privacy
 
