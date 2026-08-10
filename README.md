@@ -12,14 +12,6 @@ No build step, no dependencies, no network calls. One vanilla JS file. Notes sta
 
 **[Try it live →](https://liywjl.github.io/design-notes-tool/demo/)** — the demo page (a deliberately ordinary to-do app) has the tool pre-loaded: hold Alt and start clicking.
 
-## Demo
-<img width="960" height="600" alt="demo" src="https://github.com/user-attachments/assets/97fa1819-e5bf-4acf-92e1-1e32b870ce6a" />
-
-| <img width="2560" height="1600" alt="1-hover-highlight" src="https://github.com/user-attachments/assets/6051d445-5b64-46fc-bf58-a51ef42c41ee" />  | <img width="2560" height="1600" alt="2-note-modal" src="https://github.com/user-attachments/assets/aad8e493-767a-4990-9503-c1011640423b" />  | <img width="2560" height="1600" alt="3-manage-panel" src="https://github.com/user-attachments/assets/e8a0cab7-f264-43bf-b84d-cb009d521d43" />  |
-|---|---|---|
-
-
-
 ## Install
 
 Pick one:
