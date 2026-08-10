@@ -6,6 +6,14 @@ Built for the "this padding is wrong, that font is off, this should be 12px" loo
 
 No build step, no dependencies, no network calls. One vanilla JS file. Notes stay in your browser's localStorage until you export or clear them.
 
+## Demo
+<img width="960" height="600" alt="demo" src="https://github.com/user-attachments/assets/97fa1819-e5bf-4acf-92e1-1e32b870ce6a" />
+
+| <img width="2560" height="1600" alt="1-hover-highlight" src="https://github.com/user-attachments/assets/6051d445-5b64-46fc-bf58-a51ef42c41ee" />  | <img width="2560" height="1600" alt="2-note-modal" src="https://github.com/user-attachments/assets/aad8e493-767a-4990-9503-c1011640423b" />  | <img width="2560" height="1600" alt="3-manage-panel" src="https://github.com/user-attachments/assets/e8a0cab7-f264-43bf-b84d-cb009d521d43" />  |
+|---|---|---|
+
+
+
 ## Install
 
 Pick one:
