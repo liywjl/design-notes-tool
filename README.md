@@ -48,6 +48,17 @@ javascript:fetch('https://YOUR-HOST/design-notes.js').then(r=>r.text()).then(eva
 | Copy all as JSON | Badge → **Copy** |
 | Download all | Badge → **Download** (`design-notes.json`) |
 | Start over | Badge → **Clear** |
+| Light or dark | Badge → **Auto** / **Light** / **Dark** (click to switch; remembered per site) |
+
+## Theme
+
+The note box and manager follow your system's light or dark mode by default. Click the theme button in the manager to pin it to **Light** or **Dark**; the choice is saved in `localStorage` (`design-notes-theme`). To set a default before loading the script, for example in an app that is always dark:
+
+```js
+window.designNotesConfig = { theme: 'dark' }
+```
+
+The tool's styles are scoped to its own root, so the page's own button and textarea styles don't leak into it.
 
 ## What each note captures
 
