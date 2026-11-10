@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Design notes</title>
+<style>
+  :root {
+    --bg: #FFFFFF; --fg: #1C1C1A; --muted: #64645F; --line: #E3E3E3; --button: #FFFFFF; --button-hover: #F3F3F2;
+    --border: #C8C8C7; --primary: #106DFF; --on: #1A7F37; --brand: #00286A;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1E1F24; --fg: #ECECEF; --muted: #9A9AA5; --line: #2E2F37; --button: #26272E; --button-hover: #30313A;
+      --border: #3A3B44; --primary: #4D8DFF; --on: #3FB950; --brand: #2B4C8C;
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; width: 300px; background: var(--bg); color: var(--fg); font: 13px/1.4 -apple-system, system-ui, sans-serif; }
+  header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  header img { width: 20px; height: 20px; }
+  header strong { font-size: 14px; }
+  .current { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+  .site { display: flex; align-items: center; gap: 8px; }
+  .site-name { flex: 1; min-width: 0; font-size: 16px; font-weight: 600; overflow-wrap: anywhere; }
+  .state { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); white-space: nowrap; }
+  .state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .state[data-on="true"] { color: var(--on); }
+  .state[data-on="true"]::before { background: var(--on); }
+  .hint { margin: 0; color: var(--muted); }
+  button { font: inherit; cursor: pointer; }
+  .toggle { display: flex; align-items: center; justify-content: center; height: 36px; margin: 0; padding: 0 12px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--button); color: var(--fg); }
+  .toggle:hover { background: var(--button-hover); }
+  .toggle.primary { background: var(--primary); border-color: var(--primary); color: #FFFFFF; font-weight: 600; }
+  .toggle:disabled { cursor: default; opacity: .5; }
+  .others { padding: 12px 16px 16px; border-top: 1px solid var(--line); }
+  .others h2 { margin: 0 0 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .others ul { margin: 0; padding: 0; list-style: none; }
+  .others li { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+  .others li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .remove { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin: 0; padding: 0;
+    border: none; border-radius: 6px; background: none; color: var(--muted); }
+  .remove:hover { background: var(--button-hover); color: var(--fg); }
+</style>
+</head>
+<body>
+  <header>
+    <img src="icons/icon-32.png" alt="" />
+    <strong>Design notes</strong>
+  </header>
+  <section class="current">
+    <div class="site">
+      <span class="site-name" id="site-name"></span>
+      <span class="state" id="state"></span>
+    </div>
+    <p class="hint" id="hint"></p>
+    <button class="toggle" id="toggle"></button>
+  </section>
+  <section class="others" id="others" hidden>
+    <h2>Also on</h2>
+    <ul id="other-sites"></ul>
+  </section>
+  <script src="popup.js"></script>
+</body>
+</html>

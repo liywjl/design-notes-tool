@@ -6,7 +6,7 @@ Annotate a running web app by clicking on things, then hand the whole batch of f
 
 Built for the "this padding is wrong, that font is off, this should be 12px" loop between design review and implementation. Instead of describing each issue in chat one at a time, you Alt+click the element, type what's wrong, and export everything as one JSON file that carries the technical context an agent needs to find and fix each issue — computed styles, the React component chain, and (on dev builds) the exact source file and line.
 
-No build step, no dependencies, no network calls. One vanilla JS file. Notes stay in your browser's localStorage until you export or clear them. If it saves you review cycles, you can [buy me a coffee](https://buymeacoffee.com/willlacf).
+No build step, no dependencies, no network calls. One vanilla JS file, plus an optional browser extension that loads it for you. Notes stay in your browser's localStorage until you export or clear them. If it saves you review cycles, you can [buy me a coffee](https://buymeacoffee.com/willlacf).
 
 ![demo](docs/demo.gif)
 
@@ -14,13 +14,22 @@ No build step, no dependencies, no network calls. One vanilla JS file. Notes sta
 
 ## Install
 
-Pick one:
+**Browser extension (recommended)** — loads the tool on every refresh of the sites you turn it on for. It's this repo's own extension in [`extension/`](extension), not a third-party add-on.
 
-**DevTools snippet (recommended)** — open DevTools → Sources → Snippets → New snippet → paste `design-notes.js` → run with Cmd/Ctrl+Enter. Re-run after a full page reload. (New to snippets? See the [Chrome DevTools snippets guide](https://developer.chrome.com/docs/devtools/javascript/snippets).)
+1. Clone or [download](https://github.com/liywjl/design-notes-tool/archive/refs/heads/master.zip) this repo.
+2. Load the `extension` folder:
+   - **Chrome, Edge, Brave, Arc, Opera:** open `chrome://extensions` (Edge: `edge://extensions`), turn on **Developer mode**, click **Load unpacked**, pick the `extension` folder.
+   - **Firefox 128+:** open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on**, pick `extension/manifest.json`. Firefox drops unsigned add-ons on restart.
+   - **Safari (untested):** `xcrun safari-web-extension-converter extension`, then run the generated Xcode project.
+3. Open your app, click the toolbar icon → **Turn on for this site**.
 
-**Console** — paste the contents of `design-notes.js` into the DevTools console.
+It only asks for access to the sites you turn on, and makes no network requests. Turn a site off from the same popup.
 
-**Bookmarklet** — serve or host `design-notes.js` somewhere you trust, then bookmark:
+**DevTools snippet** — open DevTools → Sources → Snippets → New snippet → paste [`extension/design-notes.js`](extension/design-notes.js) → run with Cmd/Ctrl+Enter. Re-run after a full page reload. (New to snippets? See the [Chrome DevTools snippets guide](https://developer.chrome.com/docs/devtools/javascript/snippets).)
+
+**Console** — paste the contents of `extension/design-notes.js` into the DevTools console.
+
+**Bookmarklet** — serve or host `extension/design-notes.js` somewhere you trust, then bookmark:
 
 ```
 javascript:fetch('https://YOUR-HOST/design-notes.js').then(r=>r.text()).then(eval)

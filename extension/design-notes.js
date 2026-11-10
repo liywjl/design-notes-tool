@@ -6,8 +6,10 @@
  * Notes persist in localStorage per origin until you clear them. Nothing is sent anywhere.
  */
 (() => {
+  const isAutoLoad = Boolean(window.__designNotesAutoLoad);
+  delete window.__designNotesAutoLoad;
   if (window.__designNotes) {
-    window.__designNotes.togglePanel();
+    if (!isAutoLoad) window.__designNotes.togglePanel();
     return;
   }
   const KEY = 'design-notes';
@@ -119,6 +121,15 @@
       padding: 8px 14px; border-radius: 6px; }
   `;
   root.appendChild(style);
+
+  const EVENTS_KEPT_FROM_PAGE = ['keydown', 'keyup', 'keypress', 'beforeinput', 'input', 'paste', 'copy', 'cut',
+    'compositionstart', 'compositionupdate', 'compositionend', 'focusin', 'focusout'];
+  EVENTS_KEPT_FROM_PAGE.forEach((type) => root.addEventListener(type, (e) => e.stopPropagation()));
+
+  window.addEventListener('focusout', (e) => {
+    const isFocusMovingIntoTool = e.relatedTarget instanceof Node && root.contains(e.relatedTarget);
+    if (isFocusMovingIntoTool) e.stopImmediatePropagation();
+  }, true);
 
   const dock = document.createElement('div');
   dock.className = 'dn-dock';
