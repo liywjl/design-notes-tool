@@ -2,7 +2,7 @@
  * Design notes — annotate any running web app, then batch-process the feedback with an AI agent.
  *
  * Load: paste into the DevTools console, or save as a DevTools Snippet (Sources → Snippets) and run per page load.
- * Use:  Alt+hover highlights elements · Alt+click opens a note box · badge (bottom-left) opens the manager.
+ * Use:  Alt+click (or the crosshair button) opens a note box · badge (bottom-left) opens the manager · the trigger key is set in the manager.
  * Notes persist in localStorage per origin until you clear them. Nothing is sent anywhere.
  */
 (() => {
@@ -21,6 +21,31 @@
     const preset = window.designNotesConfig?.theme;
     return THEMES.includes(preset) ? preset : 'auto';
   };
+  const TRIGGER_KEY = 'design-notes-trigger';
+  const detectPlatform = () => {
+    const platform = navigator.userAgentData?.platform || navigator.platform || '';
+    if (/mac|iphone|ipad/i.test(platform)) return 'mac';
+    if (/win/i.test(platform)) return 'windows';
+    return 'linux';
+  };
+  const isMac = detectPlatform() === 'mac';
+  const KEY_NAMES = isMac
+    ? { alt: '⌥ Option', shift: '⇧ Shift', meta: '⌘ Command' }
+    : { alt: 'Alt', shift: 'Shift', ctrl: 'Ctrl' };
+  const TRIGGERS = [...Object.keys(KEY_NAMES), 'none'];
+  const SAVE_SHORTCUT = isMac ? '⌘ Enter' : 'Ctrl+Enter';
+  const triggerLabel = (trigger) => (trigger === 'none' ? 'Crosshair button only' : `${KEY_NAMES[trigger]}+click`);
+  const savedTrigger = () => {
+    const saved = localStorage.getItem(TRIGGER_KEY);
+    if (TRIGGERS.includes(saved)) return saved;
+    const preset = window.designNotesConfig?.trigger;
+    return TRIGGERS.includes(preset) ? preset : 'alt';
+  };
+  let trigger = savedTrigger();
+  let isPicking = false;
+  const isArmed = (e) => isPicking || (trigger !== 'none' && e[`${trigger}Key`]);
+  const addHint = () => (trigger === 'none' ? 'Click the crosshair button, then any element' : `${triggerLabel(trigger)} any element`);
+
   const load = () => JSON.parse(localStorage.getItem(KEY) || '[]');
   const save = (notes) => localStorage.setItem(KEY, JSON.stringify(notes));
 
@@ -47,9 +72,16 @@
         --dn-badge: #2B4C8C; --dn-shadow: 0 8px 30px rgba(0,0,0,.6); }
     }
     #design-notes-root * { box-sizing: border-box; }
-    #design-notes-root .dn-badge { position: fixed; bottom: 16px; left: 16px; z-index: 2147483646; padding: 8px 14px;
-      border-radius: 20px; border: none; cursor: pointer; background: var(--dn-badge); color: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,.3); font: 600 13px/1.4 -apple-system, system-ui, sans-serif; }
+    #design-notes-root .dn-dock { position: fixed; bottom: 16px; left: 16px; z-index: 2147483646; display: flex; gap: 8px; }
+    #design-notes-root .dn-badge { display: inline-flex; align-items: center; height: 36px; margin: 0; padding: 0 14px;
+      border-radius: 18px; border: none; cursor: pointer; background: var(--dn-badge); color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3); font: 600 13px/1 -apple-system, system-ui, sans-serif; }
+    #design-notes-root .dn-pick { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;
+      margin: 0; padding: 0; border-radius: 18px; border: 1px solid var(--dn-border); cursor: pointer;
+      background: var(--dn-bg); color: var(--dn-fg); box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+    #design-notes-root .dn-pick[aria-pressed="true"] { background: var(--dn-primary); border-color: var(--dn-primary); color: #fff; }
+    html[data-dn-picking] * { cursor: crosshair !important; }
+    html[data-dn-picking] #design-notes-root * { cursor: pointer !important; }
     #design-notes-root .dn-outline { position: fixed; z-index: 2147483645; pointer-events: none;
       border: 2px solid #FF8CDF; border-radius: 3px; display: none; }
     #design-notes-root .dn-modal { position: fixed; z-index: 2147483647; width: 340px; background: var(--dn-bg); color: var(--dn-fg);
@@ -77,15 +109,29 @@
     #design-notes-root .dn-item .dn-note-text { white-space: pre-wrap; word-break: break-word; color: var(--dn-fg); }
     #design-notes-root .dn-item .dn-row { justify-content: flex-start; }
     #design-notes-root .dn-item textarea { min-height: 70px; }
+    #design-notes-root .dn-panel footer { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--dn-line); color: var(--dn-muted); }
+    #design-notes-root .dn-select { position: relative; display: inline-flex; align-items: center; }
+    #design-notes-root .dn-select select { appearance: none; -webkit-appearance: none; margin: 0; padding: 6px 30px 6px 10px; border-radius: 6px;
+      border: 1px solid var(--dn-border); background: var(--dn-button); color: var(--dn-fg); font: inherit; line-height: 1.4; cursor: pointer; }
+    #design-notes-root .dn-select svg { position: absolute; right: 10px; pointer-events: none; color: var(--dn-muted); }
     #design-notes-root .dn-empty { color: var(--dn-muted); padding: 16px; text-align: center; }
     #design-notes-root .dn-toast { position: fixed; bottom: 60px; left: 16px; z-index: 2147483647; background: #1C1C1A; color: #fff;
       padding: 8px 14px; border-radius: 6px; }
   `;
   root.appendChild(style);
 
-  const badge = document.createElement('button');
-  badge.className = 'dn-badge';
-  root.appendChild(badge);
+  const dock = document.createElement('div');
+  dock.className = 'dn-dock';
+  dock.innerHTML = `
+    <button class="dn-badge" title="Show notes"></button>
+    <button class="dn-pick" aria-pressed="false" aria-label="Pick an element to annotate" title="Pick an element to annotate">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/>
+      </svg>
+    </button>`;
+  root.appendChild(dock);
+  const badge = dock.querySelector('.dn-badge');
+  const pickButton = dock.querySelector('.dn-pick');
 
   const outline = document.createElement('div');
   outline.className = 'dn-outline';
@@ -101,7 +147,14 @@
       <button class="dn-btn" data-act="download" title="Download design-notes.json">Download</button>
       <button class="dn-btn dn-danger" data-act="clear" title="Delete all notes">Clear</button>
     </header>
-    <div class="dn-list"></div>`;
+    <div class="dn-list"></div>
+    <footer>
+      <label for="dn-trigger">Add notes with</label>
+      <span class="dn-select">
+        <select id="dn-trigger"></select>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </span>
+    </footer>`;
   root.appendChild(panel);
 
   const toast = (msg) => {
@@ -149,7 +202,7 @@
     const notes = load();
     panel.querySelector('strong').textContent = `Design notes (${notes.length})`;
     const list = panel.querySelector('.dn-list');
-    list.innerHTML = notes.length ? '' : '<div class="dn-empty">No notes yet. Alt+click any element to add one.</div>';
+    list.innerHTML = notes.length ? '' : `<div class="dn-empty">No notes yet. ${addHint()} to add one.</div>`;
     notes.forEach((n, i) => {
       const item = document.createElement('div');
       item.className = 'dn-item';
@@ -208,6 +261,15 @@
   };
   showTheme();
 
+  const triggerSelect = panel.querySelector('#dn-trigger');
+  TRIGGERS.forEach((value) => triggerSelect.add(new Option(triggerLabel(value), value)));
+  triggerSelect.value = trigger;
+  triggerSelect.onchange = () => {
+    trigger = triggerSelect.value;
+    localStorage.setItem(TRIGGER_KEY, trigger);
+    renderPanel();
+  };
+
   panel.querySelector('[data-act=copy]').onclick = async () => {
     await navigator.clipboard.writeText(JSON.stringify(load(), null, 2));
     toast('Copied to clipboard');
@@ -248,7 +310,7 @@
       <textarea placeholder="What is wrong with this element?"></textarea>
       <div class="dn-row">
         <button class="dn-btn" data-act="cancel">Cancel</button>
-        <button class="dn-btn dn-primary" data-act="save">Save note</button>
+        <button class="dn-btn dn-primary" data-act="save" title="Save note (${SAVE_SHORTCUT})">Save note</button>
       </div>`;
     modal.querySelector('.dn-target').textContent = [d.testId && `#${d.testId}`, d.text && `“${d.text.slice(0, 50)}”`, `<${d.tag}>`]
       .filter(Boolean).join(' · ');
@@ -278,25 +340,48 @@
     ta.focus();
   };
 
-  document.addEventListener('mousemove', (e) => {
-    if (!e.altKey || modal) { outline.style.display = 'none'; return; }
+  const setPicking = (value) => {
+    isPicking = value;
+    pickButton.setAttribute('aria-pressed', String(value));
+    document.documentElement.toggleAttribute('data-dn-picking', value);
+    if (!value) outline.style.display = 'none';
+  };
+  pickButton.onclick = () => setPicking(!isPicking);
+
+  const annotatableTarget = (e) => {
+    if (!isArmed(e) || modal) return null;
     const el = document.elementFromPoint(e.clientX, e.clientY);
-    if (!el || root.contains(el)) return;
+    if (!el || root.contains(el)) return null;
+    return el;
+  };
+
+  document.addEventListener('mousemove', (e) => {
+    const el = annotatableTarget(e);
+    if (!el) { outline.style.display = 'none'; return; }
     const r = el.getBoundingClientRect();
     Object.assign(outline.style, { display: 'block', left: r.x + 'px', top: r.y + 'px', width: r.width + 'px', height: r.height + 'px' });
   }, true);
 
-  document.addEventListener('click', (e) => {
-    if (!e.altKey || modal) return;
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    if (!el || root.contains(el)) return;
+  document.addEventListener('mousedown', (e) => {
+    if (!annotatableTarget(e)) return;
     e.preventDefault();
     e.stopPropagation();
-    outline.style.display = 'none';
+  }, true);
+
+  document.addEventListener('click', (e) => {
+    const el = annotatableTarget(e);
+    if (!el) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setPicking(false);
     openModal(el, e.clientX, e.clientY);
+  }, true);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isPicking) setPicking(false);
   }, true);
 
   updateBadge();
   window.__designNotes = { togglePanel };
-  console.log('design notes active — Alt+hover to highlight, Alt+click to annotate, badge to manage');
+  console.log(`design notes active — ${addHint()} to annotate, badge to manage. Change the trigger in the manager.`);
 })();
