@@ -10,7 +10,7 @@ No build step, no dependencies, no network calls. One vanilla JS file. Notes sta
 
 ![demo](docs/demo.gif)
 
-**[Try it live →](https://liywjl.github.io/design-notes-tool/demo/)** — the demo page (a deliberately ordinary to-do app) has the tool pre-loaded: hold Alt and start clicking.
+**[Try it live →](https://liywjl.github.io/design-notes-tool/demo/)** — the demo page (a deliberately ordinary to-do app) has the tool pre-loaded: hold Alt (⌥ Option on a Mac) and start clicking.
 
 ## Install
 
@@ -42,13 +42,33 @@ javascript:fetch('https://YOUR-HOST/design-notes.js').then(r=>r.text()).then(eva
 
 | Action | How |
 |---|---|
-| Highlight an element | Hold **Alt** and move the mouse |
-| Add a note | **Alt+click** the element, type in the box (multi-line), Save or Cmd/Ctrl+Enter |
+| Highlight an element | Hold **Alt** (⌥ Option on a Mac) and move the mouse |
+| Add a note | **Alt+click** the element, type in the box (multi-line), Save or ⌘ Enter / Ctrl+Enter |
+| Add a note without a key | Click the **crosshair** (next to the badge), then the element. Esc cancels |
+| Change the key | Badge → **Add notes with** |
 | Manage notes | Click the **📝 badge** (bottom-left): edit, delete per note |
 | Copy all as JSON | Badge → **Copy** |
 | Download all | Badge → **Download** (`design-notes.json`) |
 | Start over | Badge → **Clear** |
 | Light or dark | Badge → **Auto** / **Light** / **Dark** (click to switch; remembered per site) |
+
+## Trigger key
+
+Alt+click is the default. If Alt clashes with something else, such as a dictation app on ⌥ Option (Wispr Flow) or a Linux window manager that grabs Alt+click, pick another in the manager's **Add notes with** menu. The choice is saved per site in `localStorage` (`design-notes-trigger`).
+
+| | Mac | Windows / Linux |
+|---|---|---|
+| `alt` (default) | ⌥ Option+click | Alt+click |
+| `shift` | ⇧ Shift+click | Shift+click |
+| `meta` | ⌘ Command+click | — |
+| `ctrl` | — (Control+click is right-click) | Ctrl+click |
+| `none` | crosshair button only | crosshair button only |
+
+To set a default before loading the script:
+
+```js
+window.designNotesConfig = { trigger: 'shift' }
+```
 
 ## Theme
 
